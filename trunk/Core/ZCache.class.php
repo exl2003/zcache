@@ -22,32 +22,67 @@ if (!defined('DIR_ZCACHE')) {
 
 class ZCache
 {
-  private $CacheDir = '';
-  private $recache  = false;
-  private $DirMask  = 0777;
+    private $CacheDir       = '';
+    private $recache        = false;
+    private $DirMask        = 0777;
+    private $CompressLevel  = 9;
 
     public function __construct  ( $cache_dir = DIR_ZCACHE ){
       $this->CacheDir = $cache_dir . '_zcache/';
-      /*
-      $this->CacheDir = $cache_dir;
-      */
     }
 
+    /**
+    *
+    * Set recache true / false
+    *
+    * @param    bool  $recache If recache == true function get return ever false
+    *
+    */
     public function SetRecache( $recache = false ){
        $this->recache = $recache;
     }
 
-    public function Set( $u_key , $data , $e_time = 0 ){
+   /**
+    *
+    * Save data to cache
+    *
+    * @param    string  $u_key  - unique key for this data
+    * @param    array   $data   - Any Data that you wish save in cache
+    * @param    int     $e_time - Time how long this data is actual
+    * @return   bool            - if cannot save return false
+    *
+    */
+    public function set( $u_key , $data , $e_time = 0 ){
       return  $this->SaveData( $u_key , $data , $e_time );
     }
 
-    public function Get( $u_key , $static = true , $e_time = 0 ){
+
+   /**
+    *
+    * Get/Load caching data
+    *
+    * @param    string  $u_key    - unique key for this data
+    * @param    bool    $static   - If static true you function return data if cache data exists
+    * @param    int     $e_time   - Time how long this data is actual
+    * @return   bool or array     - if cannot get return false
+    *
+    */
+    public function get( $u_key , $static = true , $e_time = 0 ){
       if ( $this->recache ){
        return false;
       }
       return $this->LoadData( $u_key , $static , $e_time);
     }
 
+
+   /**
+    *
+    * Generate path  to cache file( without file name)
+    *
+    * @param    string  $str_md5    - String md5 from key data
+    * @return   bool or string      - If path empty return false
+    *
+    */
     private function GenPath( $str_md5 ){
       $md5_path = array( substr($str_md5, 0, 2)  , substr($str_md5, 2, 2) );
       $ret =  $this->CacheDir . implode('/' , $md5_path ) . '/';
@@ -331,7 +366,7 @@ class ZCache
               } else{
                   //AppendFile
                   if ( file_exists( $file_name ) ) {
-                      if ( $data = gzcompress( serialize( $data ) ) ){
+                      if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                           if ( $pos = $this->AppendToFile( $file_name    , $data ) ){
                               $string = $key_file_md5 . ':' . $key_small_md5 . ':' . ( $pos - strlen($data) ) . ':' . $pos . ':' . time() . ':' . $e_time ;
                               if ( $this->AppendToIndex( $index_file_name , $string ) ){
@@ -340,7 +375,7 @@ class ZCache
                           }// else error save file data
                       }// else error compress
                   }else{
-                      if ( $data = gzcompress( serialize( $data ) ) ){
+                      if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                           $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                           if ( $this->CreateFile( $file_name        , $data ) ){
                               if ( $this->AppendToIndex( $index_file_name , $string ) ){
@@ -351,7 +386,7 @@ class ZCache
                   }
               }
           }else {
-                if ( $data = gzcompress( serialize( $data ) ) ){
+                if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                     $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                     if ( $this->CreateFile( $file_name        , $data ) ){
                         if ( $this->AppendToIndex( $index_file_name , $string ) ){
@@ -361,7 +396,7 @@ class ZCache
                 }// else error compress
              }
           } else {
-            if ( $data = gzcompress( serialize( $data ) ) ){
+            if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                 if ( $this->CreateFile( $file_name        , $data ) ){
                   if ( $this->CreateIndex( $index_file_name , $string ) ){
