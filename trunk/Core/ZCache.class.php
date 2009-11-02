@@ -237,6 +237,14 @@ class ZCache
     }
 
 
+   /**
+    *
+    * Create or Trye Create directory
+    *
+    * @param    string  $str_md5    - unique sub path
+    * @return   bool      - if  directory not exists and cannot ( create or open ) - false
+    *
+   */
     private  function CreateDirs( $str_md5 ){
       $dir_name = $this->GenPath( $str_md5 );
       $ret = false;
@@ -244,6 +252,7 @@ class ZCache
         if ( $ret = @mkdir( $dir_name  , $this->DirMask , true) ){
         } else {
           /* USER_ERROR - cannot create dir */
+          return false;
         }
       }else{
         if ( $handle = opendir( $dir_name ) ) {
@@ -251,6 +260,7 @@ class ZCache
          closedir($handle);
         }else{
           /* USER_ERROR - cannot open dir */
+          return false;
         }
       }
       return $ret;
@@ -279,6 +289,17 @@ class ZCache
         }
       }
       return $ret;
+    }
+
+
+    private  function Fstat( $file_name ){
+                // open a file
+                $fp = fopen( $file_name , 'r' );
+                // gather statistics
+                $fstat = fstat($fp);
+                // close the file
+                fclose($fp);
+                return $fstat;
     }
 
 
@@ -333,36 +354,54 @@ class ZCache
             $index_data = $this->ReadIndex( $index_file_name );
             if ( isset( $index_data[ $key_file_md5 ] ) ){
               if ( isset( $index_data[ $key_file_md5 ][ $key_small_md5 ] ) ){
-                //ReIndex
-                unset( $index_data[ $key_file_md5 ][ $key_small_md5 ] );
-                if ( $this->ReIndex( $index_file_name , $index_data ) ){
-                  if ( $data = gzcompress( serialize( $data ) ) ){
-                      if ( filesize( $file_name  ) - strlen($data) > 1024 ){
-                        unlink( $file_name  );
-                        $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
-                        if ( $this->CreateFile( $file_name        , $data ) ){
-                            if ( $this->AppendToIndex( $index_file_name , $string ) ){
-                                    return true;
-                            }// else error save index data
-                        }// else error save file data
-                      } else {
-                          if ( $pos = $this->AppendToFile( $file_name    , $data ) ){
-                              $string = $key_file_md5 . ':' . $key_small_md5 . ':' . ( $pos - strlen($data) ) . ':' . $pos . ':' . time() . ':' . $e_time ;
-                              if ( $this->AppendToIndex( $index_file_name , $string ) ){
-                                      return true;
-                              }else{ // else error save index data
-                                      return false;
-                              }
-                          }else{// else error save file data
-                            return false;
-                          }
+                      $file_info =  $this->Fstat( $file_name );
+                      if ( time() - $file_info['mtime'] <  2 ){
+                                return false;
                       }
-                  }else{// else error compress
-                    return false;
-                  }
-                } else {
-                 return false;
-                }
+
+                 $count_in_file = count( $index_data[ $key_file_md5 ] );
+                 if ( $data = gzcompress( serialize( $data ) ) ){
+                 } else {
+                        return false;
+                 }
+                 if ( $count_in_file < 2   ){
+                //ReIndex
+                        unset( $index_data[ $key_file_md5 ]  );
+                        if ( empty($index_data) ){
+                                unlink( $file_name  );
+                                unlink( $index_file_name  );
+                                $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
+                                if ( $this->CreateFile( $file_name        , $data ) ){
+                                        if ( $this->CreateIndex( $index_file_name , $string )  ){
+                                                return true;
+                                        }// else error save index data
+                                }// else error save file data
+                        }
+                        if ( $this->ReIndex( $index_file_name , $index_data ) ){
+                                unlink( $file_name  );
+                                $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
+                                if ( $this->CreateFile( $file_name        , $data ) ){
+                                        if ( $this->AppendToIndex( $index_file_name , $string ) ){
+                                                return true;
+                                        }// else error save index data
+                                }// else error save file data
+                        }
+                 } else {
+                         unset( $index_data[ $key_file_md5 ][ $key_small_md5 ] );
+                        //ReIndex
+                        if ( $this->ReIndex( $index_file_name , $index_data ) ){
+                                if ( $pos = $this->AppendToFile( $file_name    , $data ) ){
+                                        $string = $key_file_md5 . ':' . $key_small_md5 . ':' . ( $pos - strlen($data) ) . ':' . $pos . ':' . time() . ':' . $e_time ;
+                                        if ( $this->AppendToIndex( $index_file_name , $string ) ){
+                                                return true;
+                                        }else{ // else error save index data
+                                                return false;
+                                        }
+                                }else{// else error save file data
+                                        return false;
+                                }
+                        }
+                 }
               } else{
                   //AppendFile
                   if ( file_exists( $file_name ) ) {
