@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "Test\n"
+
+phpunit ZCacheTest ZCacheTest.class.php
