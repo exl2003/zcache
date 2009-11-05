@@ -303,7 +303,7 @@ class ZCache
             return false;
     }
 
-    private  function Exist_Dir( $str_md5 ){
+    private  function Exists_Dir( $str_md5 ){
       $dir_name = $this->GenPath( $str_md5 );
       $ret = false;
       if ( is_dir( $dir_name ) ){
@@ -337,7 +337,7 @@ class ZCache
     $key_file_md5   = substr( $key_md5 , 4 , 2);
     $file_name = $this->GenFileName( $key_md5 );
     $index_file_name = $this->GenIndexFileName( $key_md5 );
-    if ( $this->Exist_Dir( $key_md5 )  && file_exists( $index_file_name ) && file_exists( $file_name )){
+    if ( $this->Exists_Dir( $key_md5 )  && file_exists( $index_file_name ) && file_exists( $file_name )){
       $index_data = $this->ReadIndex( $index_file_name );
       if ( isset( $index_data[ $key_file_md5 ] ) ){
         if ( isset( $index_data[ $key_file_md5 ][ $key_small_md5 ] ) ){
