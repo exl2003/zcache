@@ -28,7 +28,8 @@ class ZCache
     private $CompressLevel  = 9;
 
     public function __construct  ( $cache_dir = DIR_ZCACHE ){
-      $this->CacheDir = $cache_dir . '_zcache/';
+      //$this->CacheDir = $cache_dir . '_zcache/';
+      $this->SetDir( $cache_dir . '_zcache/' );
     }
 
     /**
@@ -41,6 +42,29 @@ class ZCache
     public function SetRecache( $recache = false ){
        $this->recache = $recache;
     }
+
+    /**
+    *
+    * Set cache directory
+    *
+    * @param    string  $dir_name - path to new directory
+    *
+    */
+    public function SetDir( $dir_name = '.' ){
+      $this->CacheDir = $dir_name;
+    }
+
+    /**
+    *
+    * Get current cache directory
+    *
+    * @return   string  $dir_name - path current directory
+    *
+    */
+    public function GetDir(){
+      return $this->CacheDir;
+    }
+
 
    /**
     *
