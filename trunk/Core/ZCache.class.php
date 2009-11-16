@@ -168,6 +168,16 @@ class ZCache
           return $fwrite;
     }
 
+
+   /**
+    *
+    * reIndex file
+    *
+    * @param    string  $file_name    - index file name
+    * @param    array   $data         - Array data consists information about caching files by it's keys
+    * @return   bool                  - If reindex success return true otherwise - false
+    *
+    */
     private function ReIndex( $file_name , $data = array() ){
       $text = ''; $ret = false;
       if ( empty($data) ){
@@ -179,9 +189,11 @@ class ZCache
           $text .=  $string;
         }
       }
-
+      //if not files in this directory when index file not need
       if ( empty($text) ){
-        unlink( $file_name );
+        if( is_file( $file_name ) ) {
+                unlink( $file_name );
+        }
         return true;
       }
 
@@ -303,7 +315,7 @@ class ZCache
             return false;
     }
 
-    private  function Exists_Dir( $str_md5 ){
+    private  function Exist_Dir( $str_md5 ){
       $dir_name = $this->GenPath( $str_md5 );
       $ret = false;
       if ( is_dir( $dir_name ) ){
@@ -337,7 +349,7 @@ class ZCache
     $key_file_md5   = substr( $key_md5 , 4 , 2);
     $file_name = $this->GenFileName( $key_md5 );
     $index_file_name = $this->GenIndexFileName( $key_md5 );
-    if ( $this->Exists_Dir( $key_md5 )  && file_exists( $index_file_name ) && file_exists( $file_name )){
+    if ( $this->Exist_Dir( $key_md5 )  && file_exists( $index_file_name ) && file_exists( $file_name )){
       $index_data = $this->ReadIndex( $index_file_name );
       if ( isset( $index_data[ $key_file_md5 ] ) ){
         if ( isset( $index_data[ $key_file_md5 ][ $key_small_md5 ] ) ){
@@ -392,8 +404,12 @@ class ZCache
                 //ReIndex
                         unset( $index_data[ $key_file_md5 ]  );
                         if ( empty($index_data) ){
-                                unlink( $file_name  );
-                                unlink( $index_file_name  );
+                                if(is_file( $file_name )) {
+                                        unlink( $file_name );
+                                }
+                                if(is_file( $index_file_name )) {
+                                        unlink( $index_file_name );
+                                }
                                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                                 if ( $this->CreateFile( $file_name        , $data ) ){
                                         if ( $this->CreateIndex( $index_file_name , $string )  ){
