@@ -302,7 +302,18 @@ class ZCache
       return $ret;
     }
 
+
+   /**
+    *
+    * Read cached information from file
+    *
+    * @param    string  $file_name    - name file from reading information
+    * @param    array   $header       - header where placed in file cache data
+    * @return   bool                  - if  success true, otherwise false
+    *
+   */
     private  function GetFileData( $file_name , $header = array() ){
+        if( is_file( $file_name ) ) {
             $fp     = fopen( $file_name        , 'r' );
                       fseek( $fp  , isset($header['start']) ? $header['start'] : 0 );
             $info  =  fread( $fp  , isset($header['size'])  ? $header['size']  : 0 );
@@ -312,9 +323,20 @@ class ZCache
                   return $info;
                }
             }
-            return false;
+        }
+
+        return false;
     }
 
+
+   /**
+    *
+    * If directory exists
+    *
+    * @param    string  $str_md5      - part of md5 key using at path
+    * @return   bool                  - if  success true, otherwise false
+    *
+   */
     private  function Exist_Dir( $str_md5 ){
       $dir_name = $this->GenPath( $str_md5 );
       $ret = false;
