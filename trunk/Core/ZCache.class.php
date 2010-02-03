@@ -204,9 +204,7 @@ class ZCache
 
         }
         fclose($fp);
-        unlink( $file_name );
-        rename( $file_name  . '.bak' , $file_name );
-        return true;
+        return rename( $file_name  . '.bak' , $file_name );
       }
       return $ret;
     }
