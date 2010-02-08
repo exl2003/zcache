@@ -191,7 +191,7 @@ class ZCache
       }
       //if not files in this directory when index file not need
       if ( empty($text) ){
-        if( is_file( $file_name ) ) {
+        if(  is_file( $file_name ) && file_exists( $file_name )   ) {
                 unlink( $file_name );
         }
         return true;
@@ -204,7 +204,10 @@ class ZCache
 
         }
         fclose($fp);
-        return rename( $file_name  . '.bak' , $file_name );
+        if ( is_file( $file_name  . '.bak' ) && file_exists( $file_name  . '.bak' )  ){
+                rename( $file_name  . '.bak' , $file_name );
+        }
+        return true;
       }
       return $ret;
     }
@@ -424,10 +427,10 @@ class ZCache
                 //ReIndex
                         unset( $index_data[ $key_file_md5 ]  );
                         if ( empty($index_data) ){
-                                if(is_file( $file_name )) {
+                                if(is_file( $file_name )  && file_exists($file_name)  ) {
                                         unlink( $file_name );
                                 }
-                                if(is_file( $index_file_name )) {
+                                if( is_file( $index_file_name )  && file_exists( $index_file_name )   ) {
                                         unlink( $index_file_name );
                                 }
                                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
