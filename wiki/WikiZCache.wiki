@@ -1,12 +1,14 @@
-#summary One-sentence summary of this page.
+#Some word about zcache.
 
 = Introduction =
 
-Installation instructions ....(There are still no)
+Installation instructions ....
+For using class ZCache need create new php and add to it include_once ZCache ... For example :
 
-= Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+<?php
+require_once('Core/ZCache.class.php');
+$cache = new ZCache();
+// and work
+
+
