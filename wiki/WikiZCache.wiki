@@ -6,9 +6,7 @@ Installation instructions ....
 For using class ZCache need create new php and add to it include_once ZCache ... For example :
 
 
-<?php
-require_once('Core/ZCache.class.php');
-$cache = new ZCache();
-// and work
-
-
+-<?php
+-require_once('Core/ZCache.class.php');
+-$cache = new ZCache();
+-// and work
