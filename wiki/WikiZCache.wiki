@@ -2,8 +2,8 @@
 
 = Introduction =
 
-Installation instructions ....
-#For using class ZCache need create new php and add to it include_once #ZCache ... For example :
+<b>Installation instructions ....
+For using class ZCache need create new php and add to it include_once ZCache ... For example :</b>
 
 
 #<?php
