@@ -169,6 +169,11 @@ class ZCache
     }
 
 
+    private function TruncateIndex( $file_name , $first_data = '' ){
+      return $this->TruncateFile(  $file_name , $first_data . "\n");
+    }
+
+
    /**
     *
     * reIndex file
@@ -212,7 +217,15 @@ class ZCache
       return $ret;
     }
 
-    private function ReadIndex( $file_name , $reread = false ){
+   /**
+    *
+    * read index file
+    *
+    * @param    string  $file_name    - index file name
+    * @param    bool    $reread       - reread - need or not  read just data or used cached
+    * @return   array                 - return index data info
+    *
+    */    private function ReadIndex( $file_name , $reread = false ){
           $array = array();
           $handle = @fopen( $file_name , "r");
           if ($handle) {
@@ -272,6 +285,26 @@ class ZCache
           fclose($fp);
           return $fwrite;
     }
+
+
+
+    private  function TruncateFile(  $file_name , $first_data = '' ){
+        $fwrite = false;
+        $fp = fopen( $file_name , 'w') ;
+        if ( flock($fp, LOCK_EX) ) {
+            ftruncate($fp, 0) ; // <-- this will erase the contents such as 'w+'
+            if ( !empty($first_data) ){
+              $fwrite = fwrite($fp, $first_data);
+            }else{
+              //empty data
+            }
+            flock($fp, LOCK_UN) ;
+         }
+        fclose($fp);
+        return $fwrite;
+    }
+
+
 
 
    /**
@@ -427,15 +460,17 @@ class ZCache
                 //ReIndex
                         unset( $index_data[ $key_file_md5 ]  );
                         if ( empty($index_data) ){
+                                ///// EXL
+                                /*
                                 if(is_file( $file_name )  && file_exists($file_name)  ) {
                                         unlink( $file_name );
                                 }
                                 if( is_file( $index_file_name )  && file_exists( $index_file_name )   ) {
                                         unlink( $index_file_name );
-                                }
+                                }*/
                                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
-                                if ( $this->CreateFile( $file_name        , $data ) ){
-                                        if ( $this->CreateIndex( $index_file_name , $string )  ){
+                                if ( $this->TruncateFile( $file_name        , $data ) ){
+                                        if ( $this->TruncateIndex( $index_file_name , $string )  ){
                                                 return true;
                                         }// else error save index data
                                 }// else error save file data
@@ -443,7 +478,7 @@ class ZCache
                         if ( $this->ReIndex( $index_file_name , $index_data ) ){
                                 unlink( $file_name  );
                                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
-                                if ( $this->CreateFile( $file_name        , $data ) ){
+                                if ( $this->TruncateFile( $file_name        , $data ) ){
                                         if ( $this->AppendToIndex( $index_file_name , $string ) ){
                                                 return true;
                                         }// else error save index data
@@ -479,7 +514,7 @@ class ZCache
                   }else{
                       if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                           $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
-                          if ( $this->CreateFile( $file_name        , $data ) ){
+                          if ( $this->TruncateFile( $file_name        , $data ) ){
                               if ( $this->AppendToIndex( $index_file_name , $string ) ){
                                       return true;
                               }// else error save index data
@@ -490,7 +525,7 @@ class ZCache
           }else {
                 if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                     $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
-                    if ( $this->CreateFile( $file_name        , $data ) ){
+                    if ( $this->TruncateFile( $file_name        , $data ) ){
                         if ( $this->AppendToIndex( $index_file_name , $string ) ){
                                 return true;
                         }// else error save index data
@@ -500,7 +535,7 @@ class ZCache
           } else {
             if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
-                if ( $this->CreateFile( $file_name        , $data ) ){
+                if ( $this->TruncateFile( $file_name        , $data ) ){
                   if ( $this->CreateIndex( $index_file_name , $string ) ){
                           return true;
                   }// else error save index data
