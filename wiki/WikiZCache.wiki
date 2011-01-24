@@ -1,12 +1,14 @@
-#Some word about zcache.
+<strong>Some word about zcache.</strong> <br />
 
-= Introduction =
+<h1> Introduction </h1>
 
-<b>Installation instructions ....
-For using class ZCache need create new php and add to it include_once ZCache ... For example :</b>
+Installation instructions ....<br />
+For using class ZCache need create new php and add to it include_once 
+<br />ZCache ... For example :<br />
 
-
-#<?php
-#require_once('Core/ZCache.class.php');
-#$cache = new ZCache();
-#// and work
+<pre>
+<?php
+require_once('Core/ZCache.class.php');
+$cache = new ZCache();
+// and work
+</pre>
