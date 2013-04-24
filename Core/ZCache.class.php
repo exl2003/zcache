@@ -413,6 +413,7 @@ class ZCache
           if ( $static ){
             return $this->GetFileData( $file_name , $header );
           } else {
+
             if ( empty($e_time) ){
                 if ( $header['t_out'] > time() || empty($header['t_out']) ){
                   return $this->GetFileData( $file_name , $header );

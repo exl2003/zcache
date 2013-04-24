@@ -1,30 +1,42 @@
 #!/usr/bin/php
 <?php
 
-echo "Test zCache [START]....\n";
 require_once('Core/ZCache.class.php');
-
-//echo "Data ...\n .. Results ...\n";
-$cache = new ZCache();
-$nvgData = $cache->get( /*$u_key*/ "NVG" , /*$static = true*/ true /*, $e_time = 0 */);
-
-// var_dump( $nvgData );
-// if (   false === $nvgData ){
-//   $nvgData = array('company' => 'NVG' );
-//   $cache->set( /*$u_key*/ "NVG" ,  $nvgData  /*, $e_time = 0*/);
-// }
-// var_dump( $nvgData );
+$cache = new ZCache( dirname(__FILE__) . '/tmp/' );
 
 
+echo "1) Test zCache [START]....";
+$nvgData = $cache->get( "NVG" ,  true );
 
-
-while ( true ){
+$i = 0;
+while ( $i < 10000 ){
    $nvgData = array('company' => 'NVG' , 'time' => time() , 'randomBlock' => str_repeat(md5(time() . "12341234123" ), 100 ) );
-   $cache->set( /*$u_key*/ "NVG0" ,  $nvgData  /*, $e_time = 0*/);
-   $cache->set( /*$u_key*/ "NVG1" ,  $nvgData  /*, $e_time = 0*/);
-   $cache->set( /*$u_key*/ "NVG2" ,  $nvgData  /*, $e_time = 0*/);
-   //sleep(1);
-   usleep(20);
+   $cache->set( "NVG0" ,  $nvgData);
+   $cache->set( "NVG1" ,  $nvgData);
+   $cache->set( "NVG2" ,  $nvgData);
+   $i++;
 }
-echo "Test zCache [END]....\n";
+echo "[DONE]\n";
+
+echo "2) Test zCache [START]....";
+        $testString = 'time  :' . time();
+
+        $dataArray = array( $testString );
+        $cache->set(  'time_now' ,  $dataArray);
+        sleep(1);
+        if ( $dataArray = $cache->get('time_now' , false , 15) ){
+          if ( $testString === $dataArray[0] ){
+                sleep(20);
+                if ( false === $cache->get('time_now' , false , 15) ){
+                        echo "[DONE]\n";
+                } else {
+                        echo "[FAIL 3]\n";
+                }
+          }else{
+                echo "[FAIL 1]\n";
+          }
+        }else{
+                echo "[FAIL 2]\n";
+        }
+
 
