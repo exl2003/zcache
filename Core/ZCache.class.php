@@ -26,12 +26,38 @@ class ZCache
     private $recache        = false;
     private $DirMask        = 0777;
     private $CompressLevel  = 9;
+    
+    private $no_compress   = false;    
+    private $no_serialize  = false;    
 
     public function __construct  ( $cache_dir = DIR_ZCACHE ){
       //$this->CacheDir = $cache_dir . '_zcache/';
       $this->SetDir( $cache_dir . '_zcache/' );
     }
 
+    /**
+    *
+    * Set compress true / false
+    *
+    * @param    bool  $need If need == true  to be compessed data
+    *
+    */
+    public function SetCompress( $need = true ){
+       $this->no_compress = !$need;
+    }
+
+    /**
+    *
+    * Set serialize true / false
+    *
+    * @param    bool  $need If need == true  to be serialized data
+    *
+    */
+    public function SetSerialize( $need = true ){
+       $this->no_serialize = !$need;
+    }
+    
+    
     /**
     *
     * Set recache true / false
@@ -352,11 +378,9 @@ class ZCache
                       fseek( $fp  , isset($header['start']) ? $header['start'] : 0 );
             $info  =  fread( $fp  , isset($header['size'])  ? $header['size']  : 0 );
             fclose($fp);
-            if ( $info = gzuncompress($info) ){
-               if ( $info = unserialize($info) ){
-                  return $info;
-               }
-            }
+            if (!$this->no_compress)  $info = gzuncompress($info);
+            if (!$this->no_serialize) $info = unserialize($info);
+            return $info;            
         }
 
         return false;
@@ -453,10 +477,15 @@ class ZCache
                       }
 
                  $count_in_file = count( $index_data[ $key_file_md5 ] );
+
+                 if (!$this->no_serialize) $data = serialize( $data );
+                 if (!$this->no_compress)  $data = gzcompress( $data );
+/*                 
                  if ( $data = gzcompress( serialize( $data ) ) ){
                  } else {
                         return false;
                  }
+*/                 
                  if ( $count_in_file < 2   ){
                 //ReIndex
                         unset( $index_data[ $key_file_md5 ]  );
@@ -504,44 +533,53 @@ class ZCache
               } else{
                   //AppendFile
                   if ( file_exists( $file_name ) ) {
-                      if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
+                      if (!$this->no_serialize) $data = serialize( $data );
+                      if (!$this->no_compress)  $data = gzcompress( $data , $this->CompressLevel );
+                  
+                      /* if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){ */
                           if ( $pos = $this->AppendToFile( $file_name    , $data ) ){
                               $string = $key_file_md5 . ':' . $key_small_md5 . ':' . ( $pos - strlen($data) ) . ':' . $pos . ':' . time() . ':' . $e_time ;
                               if ( $this->AppendToIndex( $index_file_name , $string ) ){
                                       return true;
                               }// else error save index data
                           }// else error save file data
-                      }// else error compress
+                      /* }// else error compress */
                   }else{
-                      if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
+                      if (!$this->no_serialize) $data = serialize( $data );
+                      if (!$this->no_compress)  $data = gzcompress( $data , $this->CompressLevel );
+                      /*if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){ */
                           $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                           if ( $this->TruncateFile( $file_name        , $data ) ){
                               if ( $this->AppendToIndex( $index_file_name , $string ) ){
                                       return true;
                               }// else error save index data
                           }// else error save file data
-                      }// else error compress
+                      /* }// else error compress */
                   }
               }
           }else {
-                if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
+                if (!$this->no_serialize) $data = serialize( $data );
+                if (!$this->no_compress)  $data = gzcompress( $data , $this->CompressLevel );
+                /* if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){ */
                     $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                     if ( $this->TruncateFile( $file_name        , $data ) ){
                         if ( $this->AppendToIndex( $index_file_name , $string ) ){
                                 return true;
                         }// else error save index data
                     }// else error save file data
-                }// else error compress
+                /* }// else error compress */
              }
           } else {
-            if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){
+            if (!$this->no_serialize) $data = serialize( $data );
+            if (!$this->no_compress)  $data = gzcompress( $data , $this->CompressLevel );
+            /* if ( $data = gzcompress( serialize( $data ) , $this->CompressLevel ) ){ */
                 $string = $key_file_md5 . ':' . $key_small_md5 . ':0:' . strlen($data) . ':' . time() . ':' . $e_time ;
                 if ( $this->TruncateFile( $file_name        , $data ) ){
                   if ( $this->CreateIndex( $index_file_name , $string ) ){
                           return true;
                   }// else error save index data
                 }// else error save file data
-            }// else error compress
+            /* }// else error compress */
           }
       }
   }
